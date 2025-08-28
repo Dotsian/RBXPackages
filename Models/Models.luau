@@ -10,10 +10,6 @@ local Extend = Basics.Extend
 
 local Models = {
 	_objects = {} :: { [string]: { Types.BaseModel } },
-
-	_modelname = function<M>(Model: ((...any) -> M) | string)
-		return if type(Model) == "string" then Model else debug.info(Model, "n")
-	end,
 }
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -351,4 +347,5 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 
 return Models
+
 
