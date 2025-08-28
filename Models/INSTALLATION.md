@@ -5,6 +5,12 @@ Models lets you create classes that can be stored easily in datastores. It conta
 - `Basics.luau` : Should go under the `Models.luau` file in Roblox Studio.
 - `Types.luau` : Should go under the `Models.luau` file in Roblox Studio.
 
+You can run this command in Roblox Studio to install the Models package into `ServerScriptService`.
+
+```luau
+loadstring(game:GetService("HttpService"):GetAsync("https://raw.githubusercontent.com/Dotsian/RBXPackages/main/ModelInstaller.luau"))()
+```
+
 ## File Structure
 
 - Models.luau
