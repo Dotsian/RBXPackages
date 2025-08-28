@@ -318,6 +318,7 @@ Copies attributes from a model instance onto a dictionary and returns it.
 ]]
 function Models:Copy(Model: Types.BaseModel, Attributes: { string }): { [string]: any }
 	Enforce(Model, "Model", { "table" })
+	Enforce(Model, "Attributes", { "table" })
 
 	local Object: { [string]: any } = {}
 
@@ -347,5 +348,6 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 
 return Models
+
 
 
