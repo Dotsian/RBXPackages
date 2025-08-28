@@ -113,7 +113,7 @@ end
 Yields the current thread until the specified model is registered.
 
 <strong>Model</strong>:			The model to wait for.
-<strong>Timeout</strong>:		The amount of seconds to wait for the model before returning <code>nil</code>.
+<strong>Timeout</strong>:		The number of seconds to wait for the model before returning <code>nil</code>.
 ]]
 function Models:WaitForModel<M>(Model: Types.Typed<M> | string, Timeout: number?): Types.Typed<Types.BaseModel>
 	Enforce(Model, "Model", { "string", "function" })
@@ -175,19 +175,21 @@ function Models:Values<M>(Model: Types.Typed<M>, Attribute: string): { any }
 end
 
 --[[
-Creates a new model instance by using keyword arguments.
+Creates a new model instance using keyword arguments.
 
 <strong>Model</strong>:				The model you want to create.
 <strong>Kwargs</strong>:			The arguments you want to unpack into the model's constructor.
+<strong>Order</strong>: 			A list of values that should be inserted based on their position in the table.
 ]]
 function Models:Dynamic<M>(Model: Types.Typed<M>, Kwargs: { [any]: any }, Order: { any }): M
 	return Model(Models:Unpack(Kwargs, Order))
 end
 
 --[[
-Unpacks a dictionary.
+Unpacks a dictionary in the specified order.
 
 <strong>Dictionary</strong>:		The dictionary you want to unpack.
+<strong>Order</strong>: 			A list of values that should be unpacked based on their position in the table.
 ]]
 function Models:Unpack(Dictionary: { [string]: any }, Order: { any }): ...any
 	local Unpacked = {}
@@ -217,7 +219,7 @@ function Models:Exists<M>(Model: Types.Typed<M>, ID: number): boolean
 end
 
 --[[
-Returns a filtered table containing all initiated model instances of the specified model that pass the conditional.
+Returns a filtered table containing all initiated model instances of the specified model that pass the condition.
 
 <strong>Model</strong>:				The model that will be filtered for instances.
 <strong>Conditional</strong>:		The function to filter the instances by.
@@ -251,7 +253,7 @@ function Models:Filter<M>(Model: Types.Typed<M>, Conditional: (M) -> boolean): {
 end
 
 --[[
-Returns a model instance from its ID.
+Returns a model instance by its ID.
 
 <strong>Model</strong>:				The model to return an instance of.
 <strong>ID</strong>:				The ID of the instance to return.
@@ -313,12 +315,12 @@ function Models:Get<M>(Model: Types.Typed<M>, Attribute: string, Value: any): M?
 end
 
 --[[
-Copies attributes from a model onto a dictionary and returns it.
+Copies attributes from a model instance onto a dictionary and returns it.
 
 <strong>Model</strong>:				The model instance you want to copy from.
 <strong>Attributes</strong>:		A list of attributes you want to copy from the model instance.
 ]]
-function Models:Copy(Model: Types.BaseModel, Attributes: { string })
+function Models:Copy(Model: Types.BaseModel, Attributes: { string }): { [string]: any }
 	Enforce(Model, "Model", { "table" })
 
 	local Object: { [string]: any } = {}
@@ -349,3 +351,4 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 
 return Models
+
