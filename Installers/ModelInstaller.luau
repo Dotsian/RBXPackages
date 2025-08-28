@@ -5,7 +5,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Files = {"Models.luau", "Basics.luau", "Types.luau"}
 
 function FetchFile(Path: string): string?
-	local URL = "https://raw.githubusercontent.com/Dotsian/RBXPackages/main/"..Path
+	local URL = "https://raw.githubusercontent.com/Dotsian/RBXPackages/main/Models/"..Path
 
 	local Success, Result = pcall(function()
 		return HttpService:GetAsync(URL)
@@ -40,3 +40,4 @@ for _, InstallFile in Files do
 end
 
 print("[Installer]: Installation complete!")
+
