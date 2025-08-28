@@ -14,6 +14,36 @@ local Models = {
 
 ------------------------------------------------------------------------------------------------------------------------
 
+function ValidateData(Model: Types.BaseModel, Data: Types.ModelData): boolean
+	if not Data then
+		return true
+	end
+	
+	if Data.LIMIT and #Models._objects[Model.__name__] >= Data.LIMIT then
+		return false
+	end
+	
+	if not Data.UNIQUE then
+		return true
+	end
+
+	for _, Attribute in Data.UNIQUE do
+		for _, Object in Models._objects[Model.__name__] do
+			Object = Object :: any
+
+			if not Object[Attribute] or Object[Attribute] ~= (Model :: any)[Attribute] then
+				continue
+			end
+
+			warn(`[{Model.__name__}] - UNIQUE constraint violated: {Attribute:upper()}`)
+
+			return false
+		end
+	end
+	
+	return true
+end
+
 -- Base class for all models.
 function Models.BaseModel(): Types.BaseModel
 	local self = {
@@ -23,7 +53,7 @@ function Models.BaseModel(): Types.BaseModel
 		__properties__ = {},
 	} :: Types.BaseModel
 
-	function self:__register__()
+	function self:__register__(Data: Types.ModelData)
 		local Name: string? = debug.traceback("", 2):match("function ([^\n]+)")
 
 		if not Name then
@@ -37,12 +67,18 @@ function Models.BaseModel(): Types.BaseModel
 		if Models._objects[self.__name__] == nil then
 			Models._objects[self.__name__] = {}
 		end
+		
+		local Success = ValidateData(self, Data)
+		
+		if not Success then
+			return nil
+		end
 
 		table.insert(Models._objects[self.__name__], self)
 
 		self.ID = #Models._objects[self.__name__]
 
-		return self
+		return self :: any
 	end
 
 	function self:Property(Name: string, Function: (...any) -> any)
@@ -130,7 +166,7 @@ function Models:WaitForModel<M>(Model: Types.Typed<M> | string, Timeout: number?
 		end
 
 		if not Timeout and (tick() - StartTime) > 5 and not Warned then
-			warn(`Infinite yield possible on '{script.Name}:("{Model})'`)
+			warn(`Infinite yield possible on '{script.Name}:WaitForModel("{Model}")'`)
 			Warned = true
 		end
 

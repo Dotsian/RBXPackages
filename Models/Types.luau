@@ -21,8 +21,8 @@ export type BaseModel = {
 	__properties__: { [string]: Typed<any> },
 
 	-- Registers a model instance by assigning it a name, ID, and inserting it into the model's object table.
-	__register__: typeof(function<M>(_: M)
-		local Model: M
+	__register__: typeof(function<M>(_: M, Data: ModelData?)
+		local Model: M?
 		return Model
 	end),
 
@@ -41,6 +41,11 @@ export type BaseModel = {
 	-- Removes a model instance from the model's object table.
 	Release: typeof(function(_: BaseModel) end),
 }
+
+export type ModelData = {
+	LIMIT: number?,
+	UNIQUE: { string }?,
+}?
 
 export type Typed<T> = (...any) -> T
 
