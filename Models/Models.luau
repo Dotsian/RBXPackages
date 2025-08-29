@@ -14,15 +14,15 @@ local Models = {
 
 ------------------------------------------------------------------------------------------------------------------------
 
-function ValidateData(Model: Types.BaseModel, Data: Types.ModelData): boolean
+function ValidateData(Model: Types.BaseModel, Data: Types.ModelConstraints?): boolean
 	if not Data then
 		return true
 	end
-	
+
 	if Data.LIMIT and #Models._objects[Model.__name__] >= Data.LIMIT then
 		return false
 	end
-	
+
 	if not Data.UNIQUE then
 		return true
 	end
@@ -30,17 +30,32 @@ function ValidateData(Model: Types.BaseModel, Data: Types.ModelData): boolean
 	for _, Attribute in Data.UNIQUE do
 		for _, Object in Models._objects[Model.__name__] do
 			Object = Object :: any
+			Model = Model :: any
+			
+			local Check = Object[Attribute] and Object[Attribute] == Model[Attribute]
+			
+			if string.find(Attribute, "__") then
+				local SplitAttribute = string.split(Attribute, "__")
+				
+				local ObjectProperty = Object[SplitAttribute[1]]
+				local ModelProperty = Model[SplitAttribute[1]]
+				
+				local ObjectAttribute = ObjectProperty[SplitAttribute[2]]
+				local ModelAttribute = ModelProperty[SplitAttribute[2]]
+				
+				Check = ObjectAttribute and ObjectProperty[SplitAttribute[2]] == ModelAttribute
+			end
 
-			if not Object[Attribute] or Object[Attribute] ~= (Model :: any)[Attribute] then
+			if not Check then
 				continue
 			end
 
-			warn(`[{Model.__name__}] - UNIQUE constraint violated: {Attribute:upper()}`)
+			warn(`[{Model.__name__}] - UNIQUE constraint violated: {Attribute:upper():gsub("__", ".")}`)
 
 			return false
 		end
 	end
-	
+
 	return true
 end
 
@@ -53,7 +68,7 @@ function Models.BaseModel(): Types.BaseModel
 		__properties__ = {},
 	} :: Types.BaseModel
 
-	function self:__register__(Data: Types.ModelData)
+	function self:__register__(Constraints: Types.ModelConstraints?): Types.BaseModel?
 		local Name: string? = debug.traceback("", 2):match("function ([^\n]+)")
 
 		if not Name then
@@ -67,9 +82,9 @@ function Models.BaseModel(): Types.BaseModel
 		if Models._objects[self.__name__] == nil then
 			Models._objects[self.__name__] = {}
 		end
-		
-		local Success = ValidateData(self, Data)
-		
+
+		local Success = ValidateData(self, Constraints)
+
 		if not Success then
 			return nil
 		end
@@ -78,14 +93,14 @@ function Models.BaseModel(): Types.BaseModel
 
 		self.ID = #Models._objects[self.__name__]
 
-		return self :: any
+		return self
 	end
 
 	function self:Property(Name: string, Function: (...any) -> any)
 		self.__properties__[Name] = Function
 	end
 
-	function self:Release()
+	function self:Delete()
 		local Objects = Models._objects[self.__name__]
 
 		table.remove(Objects, table.find(Objects, self))
@@ -126,11 +141,17 @@ end
 Registers a dictionary of models.
 
 <strong>Model</strong>:			The model dictionary you want to register from.
+<strong>Exclude</strong>:		A list of models that will be excluded from being registered.
 ]]
-function Models:Register(Model: { [string]: any })
+function Models:Register(Model: { [string]: any }, Exclude: { string }?)
 	Enforce(Model, "Model", { "table" })
+	Enforce(Exclude, "Exclude", { "table", "nil" })
 
 	for Key, Function in Model do
+		if table.find(Exclude or {}, Key) then
+			continue
+		end
+		
 		if type(Function) ~= "function" then
 			continue
 		end

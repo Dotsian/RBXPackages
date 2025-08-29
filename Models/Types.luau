@@ -35,17 +35,17 @@ export type BaseModel = {
 	-- Registers a new `Property` from a function.
 	Property: typeof(function(_: BaseModel, Name: string, Function: Typed<any>) end),
 
-	-- Custom function invoked after `Release()`.
+	-- Custom function invoked after `Delete()`.
 	Destroy: typeof(function(_: BaseModel) end),
 
 	-- Removes a model instance from the model's object table.
-	Release: typeof(function(_: BaseModel) end),
+	Delete: typeof(function(_: BaseModel) end),
 }
 
-export type ModelData = {
+export type ModelConstraints = {
 	LIMIT: number?,
 	UNIQUE: { string }?,
-}?
+}
 
 export type Typed<T> = (...any) -> T
 
