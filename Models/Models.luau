@@ -86,7 +86,7 @@ function Models.BaseModel(): Types.BaseModel
 		local Success = ValidateData(self, Constraints)
 
 		if not Success then
-			return nil
+			return nil :: any
 		end
 
 		table.insert(Models._objects[self.__name__], self)
@@ -272,6 +272,23 @@ function Models:Exists<M>(Model: Types.Typed<M>, ID: number): boolean
 end
 
 --[[
+Returns the first model instance in a model.
+
+<strong>Model</strong>:				The model you want to return the instance from.
+]]
+function Models:First<M>(Model: Types.Typed<M>): M?
+	Enforce(Model, "Model", { "function" })
+	
+	local Bucket = Models._objects[debug.info(Model, "n")]
+	
+	if not Bucket then
+		return nil
+	end
+	
+	return Bucket[1]
+end
+
+--[[
 Returns a filtered table containing all initiated model instances of the specified model that pass the condition.
 
 <strong>Model</strong>:				The model that will be filtered for instances.
@@ -400,6 +417,41 @@ function Models:Copy(Model: Types.BaseModel, Attributes: { string }): { [string]
 	end
 
 	return Object
+end
+
+--[[
+A signal-friendly and safe way of executing a model query.
+
+<strong>Model</strong>:				The model you want to query.
+<strong>Query</strong>:				The query you want to execute.
+<strong>Allowed</strong>:			The restrictions to apply to the operation.
+]]
+function Models.ExecuteQuery(
+	Model: string, Query: string, Allowed: { Model: { string }, Query: { string } } | { }, ...
+): any
+	Enforce(Model, "Model", { "string" })
+	Enforce(Query, "Query", { "string" })
+	Enforce(Allowed, "Allowed", { "table" })
+	
+	if Allowed ~= {} then
+		Allowed = Allowed :: { Model: { string }, Query: { string } }
+		
+		assert(table.find(Allowed.Model, Model) ~= nil, "RESTRICTION violated: Attempt to access restricted model")
+		assert(table.find(Allowed.Query, Query) ~= nil, "RESTRICTION violated: Attempt to execute restricted query")
+	end
+	
+	local ModelClass = Models:WaitForModel(Model, 5)
+	local QueryFunction = Models[Query]
+	
+	if not ModelClass then
+		error(Model .. " is not a valid model")
+	end
+
+	if not QueryFunction then
+		error(Query .. " is not a valid query")
+	end
+	
+	return QueryFunction(nil, ModelClass, ...)
 end
 
 ------------------------------------------------------------------------------------------------------------------------
