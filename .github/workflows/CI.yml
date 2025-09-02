@@ -9,4 +9,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: v0.19.1
-          args: --check
+          args: --check .
