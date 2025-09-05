@@ -289,6 +289,23 @@ function Models:First<M>(Model: Types.Typed<M>): M?
 end
 
 --[[
+Returns the number of model instances created under the specified model.
+
+<strong>Model</strong>:				The model you want to retrieve the count from.
+]]
+function Models:Count<M>(Model: Types.Typed<M>): number
+	Enforce(Model, "Model", { "function" })
+
+	local Bucket = Models._objects[debug.info(Model, "n")]
+
+	if not Bucket then
+		return 0
+	end
+
+	return #Bucket
+end
+
+--[[
 Returns a filtered table containing all initiated model instances of the specified model that pass the condition.
 
 <strong>Model</strong>:				The model that will be filtered for instances.
@@ -457,3 +474,4 @@ end
 ------------------------------------------------------------------------------------------------------------------------
 
 return Models
+
